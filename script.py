@@ -76,6 +76,8 @@ def rename_files(directory, mode):
                         shutil.move(old_file, new_file)
                         log_file.write(f"Renamed '{filename}' to '{new_name}'\n")
                         print(f"Renamed '{filename}' to '{new_name}'")
+                        if os.path.exists(old_file):
+                            os.remove(old_file)  # Explicitly remove the original file
                         break
                     except PermissionError as e:
                         print(f"Error renaming '{filename}': {e}. Retrying...")
