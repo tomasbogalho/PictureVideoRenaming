@@ -10,9 +10,7 @@ def export_file_info(directory):
     with open("file_info.txt", "w") as file_info:
         for root, _, files in os.walk(directory):
             for filename in files:
-                if filename.lower() == "thumbs.db":
-                    continue  # Skip Thumbs.db file
-                if not year_pattern.search(filename):
+                if year not in filename:
                     filename_with_year = f"{year}_{filename}"
                     file_info.write(f"File Name: {filename_with_year}, Path: {os.path.join(root, filename_with_year)}\n")
                 else:
