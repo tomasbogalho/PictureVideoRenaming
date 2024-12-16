@@ -10,12 +10,12 @@ from hachoir.metadata import extractMetadata
 def get_taken_date(image_path):
     dates = []
     try:
-        image = Image.open(image_path)
-        exif_data = image._getexif()
-        if exif_data:
-            for tag, value in exif_data.items():
-                if TAGS.get(tag) in ['DateTimeOriginal', 'DateTimeDigitized', 'DateTime']:
-                    dates.append(datetime.datetime.strptime(value, '%Y:%m:%d %H:%M:%S'))
+        with Image.open(image_path) as image:
+            exif_data = image._getexif()
+            if exif_data:
+                for tag, value in exif_data.items():
+                    if TAGS.get(tag) in ['DateTimeOriginal', 'DateTimeDigitized', 'DateTime']:
+                        dates.append(datetime.datetime.strptime(value, '%Y:%m:%d %H:%M:%S'))
     except Exception as e:
         print(f"Error getting taken date from {image_path}: {e}")
     return dates
