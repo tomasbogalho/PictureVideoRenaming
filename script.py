@@ -76,14 +76,14 @@ def rename_files(directory, mode):
                 new_file = os.path.join(directory, new_name)
                 counter = 1
                 while os.path.exists(new_file):
-                    new_file = os.path.join(directory, f"{oldest_date.strftime('%Y-%m-%d_%H-%M-%S')}_{counter}{file_extension}")
+                    new_file = os.path.join(directory, f"{oldest_date.strftime('%Y-%m-%d_%H-%M-%S')}_{counter:02d}{file_extension}")
                     counter += 1
 
                 for _ in range(5):  # Retry up to 5 times
                     try:
                         shutil.move(old_file, new_file)
-                        log_file.write(f"Renamed '{filename}' to '{new_name}'\n")
-                        print(f"Renamed '{filename}' to '{new_name}'")
+                        log_file.write(f"Renamed '{filename}' to '{new_file}'\n")
+                        print(f"Renamed '{filename}' to '{new_file}'")
                         break
                     except PermissionError as e:
                         print(f"Error renaming '{filename}': {e}. Retrying...")
