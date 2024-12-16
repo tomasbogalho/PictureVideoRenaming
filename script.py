@@ -6,31 +6,40 @@ from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 
 def get_taken_date(image_path):
+    dates = []
     try:
         image = Image.open(image_path)
         exif_data = image._getexif()
         if exif_data:
             for tag, value in exif_data.items():
-                if TAGS.get(tag) == 'DateTimeOriginal':
-                    return datetime.datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
+                if TAGS.get(tag) in ['DateTimeOriginal', 'DateTimeDigitized', 'DateTime']:
+                    dates.append(datetime.datetime.strptime(value, '%Y:%m:%d %H:%M:%S'))
     except Exception as e:
         print(f"Error getting taken date from {image_path}: {e}")
-    return None
+    return dates
 
 def get_media_creation_date(video_path):
+    dates = []
     try:
         parser = createParser(video_path)
         metadata = extractMetadata(parser)
-        if metadata and metadata.has("creation_date"):
-            return metadata.get("creation_date")
+        if metadata:
+            for date_tag in ["creation_date", "modification_date", "encoded_date", "tagged_date"]:
+                if metadata.has(date_tag):
+                    dates.append(metadata.get(date_tag))
     except Exception as e:
         print(f"Error getting media creation date from {video_path}: {e}")
-    return None
+    return dates
 
 def get_file_date(file_path):
     creation_date = datetime.datetime.fromtimestamp(os.path.getctime(file_path))
     modification_date = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
-    return min(creation_date, modification_date)
+    return [creation_date, modification_date]
+
+def get_oldest_date(dates):
+    if dates:
+        return min(dates)
+    return None
 
 def rename_files(directory, mode):
     picture_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
@@ -44,25 +53,26 @@ def rename_files(directory, mode):
         new_name = None
 
         try:
+            dates = []
             if file_extension in picture_extensions:
-                taken_date = get_taken_date(old_file)
-                if not taken_date:
-                    taken_date = get_file_date(old_file)
-                new_name = taken_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
+                dates.extend(get_taken_date(old_file))
+                dates.extend(get_file_date(old_file))
             elif file_extension in video_extensions:
-                creation_date = get_media_creation_date(old_file)
-                if not creation_date:
-                    creation_date = get_file_date(old_file)
-                new_name = creation_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
+                dates.extend(get_media_creation_date(old_file))
+                dates.extend(get_file_date(old_file))
             else:
                 continue
 
-            if mode == "rename":
+            oldest_date = get_oldest_date(dates)
+            if oldest_date:
+                new_name = oldest_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
+
+            if mode == "rename" and new_name:
                 new_file = os.path.join(directory, new_name)
                 os.rename(old_file, new_file)
                 log_file.write(f"Renamed '{filename}' to '{new_name}'\n")
                 print(f"Renamed '{filename}' to '{new_name}'")
-            elif mode == "validate":
+            elif mode == "validate" and new_name:
                 log_file.write(f"'{filename}' would be renamed to '{new_name}'\n")
                 print(f"'{filename}' would be renamed to '{new_name}'")
         except Exception as e:
