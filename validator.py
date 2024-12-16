@@ -11,8 +11,7 @@ def export_file_info(directory):
         for root, _, files in os.walk(directory):
             for filename in files:
                 if year not in filename:
-                    filename_with_year = f"{year}_{filename}"
-                    file_info.write(f"File Name: {filename_with_year}, Path: {os.path.join(root, filename_with_year)}\n")
+                    file_info.write(f"File Name: {filename}, Path: {os.path.join(root, filename)}\n")
 
 if __name__ == "__main__":
     directory = input("Enter the directory path: ")
