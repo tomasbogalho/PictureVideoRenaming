@@ -22,7 +22,7 @@ def get_media_creation_date(video_path):
         parser = createParser(video_path)
         metadata = extractMetadata(parser)
         if metadata and metadata.has("creation_date"):
-            return metadata.get("creation_date").value
+            return metadata.get("creation_date")
     except Exception as e:
         print(f"Error getting media creation date from {video_path}: {e}")
     return None
@@ -50,7 +50,7 @@ def rename_files(directory, mode):
                     taken_date = get_file_date(old_file)
                 new_name = taken_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
             elif file_extension in video_extensions:
-                screation_date = get_media_creation_date(old_file)
+                creation_date = get_media_creation_date(old_file)
                 if not creation_date:
                     creation_date = get_file_date(old_file)
                 new_name = creation_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
