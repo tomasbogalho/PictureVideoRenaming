@@ -72,25 +72,26 @@ def rename_files(directory, mode):
             if oldest_date:
                 new_name = oldest_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
 
-            if mode == "rename" and new_name:
+            if new_name:
                 new_file = os.path.join(directory, new_name)
                 counter = 1
                 while os.path.exists(new_file):
                     new_file = os.path.join(directory, f"{oldest_date.strftime('%Y-%m-%d_%H-%M-%S')}_{counter:02d}{file_extension}")
                     counter += 1
 
-                for _ in range(5):  # Retry up to 5 times
-                    try:
-                        shutil.move(old_file, new_file)
-                        log_file.write(f"Renamed '{filename}' to '{new_file}'\n")
-                        print(f"Renamed '{filename}' to '{new_file}'")
-                        break
-                    except PermissionError as e:
-                        print(f"Error renaming '{filename}': {e}. Retrying...")
-                        time.sleep(1)  # Wait for 1 second before retrying
-            elif mode == "validate" and new_name:
-                log_file.write(f"'{filename}' would be renamed to '{new_name}'\n")
-                print(f"'{filename}' would be renamed to '{new_name}'")
+                if mode == "rename":
+                    for _ in range(5):  # Retry up to 5 times
+                        try:
+                            shutil.move(old_file, new_file)
+                            log_file.write(f"Renamed '{filename}' to '{new_file}'\n")
+                            print(f"Renamed '{filename}' to '{new_file}'")
+                            break
+                        except PermissionError as e:
+                            print(f"Error renaming '{filename}': {e}. Retrying...")
+                            time.sleep(1)  # Wait for 1 second before retrying
+                elif mode == "validate":
+                    log_file.write(f"'{filename}' would be renamed to '{new_file}'\n")
+                    print(f"'{filename}' would be renamed to '{new_file}'")
         except Exception as e:
             print(f"Error processing {filename}: {e}")
 
