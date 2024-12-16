@@ -47,56 +47,56 @@ def get_oldest_date(dates):
 def rename_files(directory, mode):
     picture_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
     video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.flv']
-    files = os.listdir(directory)
     log_file = open("rename_log.txt", "w")
     new_names = set()
 
-    for filename in files:
-        file_extension = os.path.splitext(filename)[1].lower()
-        old_file = os.path.join(directory, filename)
-        new_name = None
+    for root, _, files in os.walk(directory):
+        for filename in files:
+            file_extension = os.path.splitext(filename)[1].lower()
+            old_file = os.path.join(root, filename)
+            new_name = None
 
-        try:
-            dates = []
-            if file_extension in picture_extensions:
-                dates.extend(get_taken_date(old_file))
-                dates.extend(get_file_dates(old_file))
-            elif file_extension in video_extensions:
-                media_creation_date = get_media_creation_date(old_file)
-                if media_creation_date:
-                    dates.append(media_creation_date)
-                dates.extend(get_file_dates(old_file))
-            else:
-                continue
+            try:
+                dates = []
+                if file_extension in picture_extensions:
+                    dates.extend(get_taken_date(old_file))
+                    dates.extend(get_file_dates(old_file))
+                elif file_extension in video_extensions:
+                    media_creation_date = get_media_creation_date(old_file)
+                    if media_creation_date:
+                        dates.append(media_creation_date)
+                    dates.extend(get_file_dates(old_file))
+                else:
+                    continue
 
-            oldest_date = get_oldest_date(dates)
-            if oldest_date:
-                new_name = oldest_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
+                oldest_date = get_oldest_date(dates)
+                if oldest_date:
+                    new_name = oldest_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
 
-            if new_name:
-                new_file = os.path.join(directory, new_name)
-                counter = 1
-                while new_file in new_names:
-                    new_file = os.path.join(directory, f"{oldest_date.strftime('%Y-%m-%d_%H-%M-%S')}_{counter:02d}{file_extension}")
-                    counter += 1
+                if new_name:
+                    new_file = os.path.join(root, new_name)
+                    counter = 1
+                    while new_file in new_names:
+                        new_file = os.path.join(root, f"{oldest_date.strftime('%Y-%m-%d_%H-%M-%S')}_{counter:02d}{file_extension}")
+                        counter += 1
 
-                new_names.add(new_file)
+                    new_names.add(new_file)
 
-                if mode == "rename":
-                    for _ in range(5):  # Retry up to 5 times
-                        try:
-                            shutil.move(old_file, new_file)
-                            log_file.write(f"Renamed '{filename}' to '{new_file}'\n")
-                            print(f"Renamed '{filename}' to '{new_file}'")
-                            break
-                        except PermissionError as e:
-                            print(f"Error renaming '{filename}': {e}. Retrying...")
-                            time.sleep(1)  # Wait for 1 second before retrying
-                elif mode == "validate":
-                    log_file.write(f"'{filename}' would be renamed to '{new_file}'\n")
-                    print(f"'{filename}' would be renamed to '{new_file}'")
-        except Exception as e:
-            print(f"Error processing {filename}: {e}")
+                    if mode == "rename":
+                        for _ in range(5):  # Retry up to 5 times
+                            try:
+                                shutil.move(old_file, new_file)
+                                log_file.write(f"Renamed '{filename}' to '{new_file}'\n")
+                                print(f"Renamed '{filename}' to '{new_file}'")
+                                break
+                            except PermissionError as e:
+                                print(f"Error renaming '{filename}': {e}. Retrying...")
+                                time.sleep(1)  # Wait for 1 second before retrying
+                    elif mode == "validate":
+                        log_file.write(f"'{filename}' would be renamed to '{new_file}'\n")
+                        print(f"'{filename}' would be renamed to '{new_file}'")
+            except Exception as e:
+                print(f"Error processing {filename}: {e}")
 
     log_file.close()
 
