@@ -1,5 +1,7 @@
 import os
 import datetime
+import time
+import shutil
 from PIL import Image
 from PIL.ExifTags import TAGS
 from hachoir.parser import createParser
@@ -69,9 +71,15 @@ def rename_files(directory, mode):
 
             if mode == "rename" and new_name:
                 new_file = os.path.join(directory, new_name)
-                os.rename(old_file, new_file)
-                log_file.write(f"Renamed '{filename}' to '{new_name}'\n")
-                print(f"Renamed '{filename}' to '{new_name}'")
+                for _ in range(5):  # Retry up to 5 times
+                    try:
+                        shutil.move(old_file, new_file)
+                        log_file.write(f"Renamed '{filename}' to '{new_name}'\n")
+                        print(f"Renamed '{filename}' to '{new_name}'")
+                        break
+                    except PermissionError as e:
+                        print(f"Error renaming '{filename}': {e}. Retrying...")
+                        time.sleep(1)  # Wait for 1 second before retrying
             elif mode == "validate" and new_name:
                 log_file.write(f"'{filename}' would be renamed to '{new_name}'\n")
                 print(f"'{filename}' would be renamed to '{new_name}'")
