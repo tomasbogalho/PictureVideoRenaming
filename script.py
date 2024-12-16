@@ -75,7 +75,7 @@ def rename_files(directory, mode):
 
             if new_name:
                 new_file = os.path.join(directory, new_name)
-                counter = 1
+                counter = 2  # Start counter from 2 for repeated files
                 while new_file in new_names or os.path.exists(new_file):
                     new_file = os.path.join(directory, f"{oldest_date.strftime('%Y-%m-%d_%H-%M-%S')}_{counter:02d}{file_extension}")
                     counter += 1
