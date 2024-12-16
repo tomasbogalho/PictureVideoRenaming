@@ -21,23 +21,20 @@ def get_taken_date(image_path):
     return dates
 
 def get_media_creation_date(video_path):
-    dates = []
     try:
         parser = createParser(video_path)
         if not parser:
             print(f"Unable to parse file {video_path}")
-            return dates
+            return None
         with parser:
             metadata = extractMetadata(parser)
-            if metadata:
-                for date_tag in ["creation_date", "modification_date", "encoded_date", "tagged_date"]:
-                    if metadata.has(date_tag):
-                        dates.append(metadata.get(date_tag).value)
+            if metadata and metadata.has("creation_date"):
+                return metadata.get("creation_date").value
     except Exception as e:
         print(f"Error getting media creation date from {video_path}: {e}")
-    return dates
+    return None
 
-def get_file_date(file_path):
+def get_file_dates(file_path):
     creation_date = datetime.datetime.fromtimestamp(os.path.getctime(file_path))
     modification_date = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
     return [creation_date, modification_date]
@@ -62,10 +59,12 @@ def rename_files(directory, mode):
             dates = []
             if file_extension in picture_extensions:
                 dates.extend(get_taken_date(old_file))
-                dates.extend(get_file_date(old_file))
+                dates.extend(get_file_dates(old_file))
             elif file_extension in video_extensions:
-                dates.extend(get_media_creation_date(old_file))
-                dates.extend(get_file_date(old_file))
+                media_creation_date = get_media_creation_date(old_file)
+                if media_creation_date:
+                    dates.append(media_creation_date)
+                dates.extend(get_file_dates(old_file))
             else:
                 continue
 
