@@ -32,7 +32,7 @@ def get_file_date(file_path):
     modification_date = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
     return min(creation_date, modification_date)
 
-def rename_files(directory):
+def rename_files(directory, mode):
     picture_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
     video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.flv']
     files = os.listdir(directory)
@@ -50,22 +50,30 @@ def rename_files(directory):
                     taken_date = get_file_date(old_file)
                 new_name = taken_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
             elif file_extension in video_extensions:
-                creation_date = get_media_creation_date(old_file)
+                screation_date = get_media_creation_date(old_file)
                 if not creation_date:
                     creation_date = get_file_date(old_file)
                 new_name = creation_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
             else:
                 continue
 
-            new_file = os.path.join(directory, new_name)
-            os.rename(old_file, new_file)
-            log_file.write(f"Renamed '{filename}' to '{new_name}'\n")
-            print(f"Renamed '{filename}' to '{new_name}'")
+            if mode == "rename":
+                new_file = os.path.join(directory, new_name)
+                os.rename(old_file, new_file)
+                log_file.write(f"Renamed '{filename}' to '{new_name}'\n")
+                print(f"Renamed '{filename}' to '{new_name}'")
+            elif mode == "validate":
+                log_file.write(f"'{filename}' would be renamed to '{new_name}'\n")
+                print(f"'{filename}' would be renamed to '{new_name}'")
         except Exception as e:
-            print(f"Error renaming {filename}: {e}")
+            print(f"Error processing {filename}: {e}")
 
     log_file.close()
 
 if __name__ == "__main__":
     directory = input("Enter the directory path: ")
-    rename_files(directory)
+    mode = input("Enter the mode (rename/validate): ").strip().lower()
+    if mode not in ["rename", "validate"]:
+        print("Invalid mode. Please enter 'rename' or 'validate'.")
+    else:
+        rename_files(directory, mode)
