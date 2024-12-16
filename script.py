@@ -29,7 +29,7 @@ def get_media_creation_date(video_path):
         with parser:
             metadata = extractMetadata(parser)
             if metadata and metadata.has("creation_date"):
-                return metadata.get("creation_date").value
+                return metadata.get("creation_date")
     except Exception as e:
         print(f"Error getting media creation date from {video_path}: {e}")
     return None
