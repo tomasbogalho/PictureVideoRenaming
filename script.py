@@ -49,6 +49,7 @@ def rename_files(directory, mode):
     video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.flv']
     files = os.listdir(directory)
     log_file = open("rename_log.txt", "w")
+    new_names = set()
 
     for filename in files:
         file_extension = os.path.splitext(filename)[1].lower()
@@ -75,9 +76,11 @@ def rename_files(directory, mode):
             if new_name:
                 new_file = os.path.join(directory, new_name)
                 counter = 1
-                while os.path.exists(new_file):
+                while new_file in new_names or os.path.exists(new_file):
                     new_file = os.path.join(directory, f"{oldest_date.strftime('%Y-%m-%d_%H-%M-%S')}_{counter:02d}{file_extension}")
                     counter += 1
+
+                new_names.add(new_file)
 
                 if mode == "rename":
                     for _ in range(5):  # Retry up to 5 times
