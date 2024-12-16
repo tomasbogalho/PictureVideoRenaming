@@ -14,9 +14,9 @@ def export_file_info(directory):
                     continue  # Skip Thumbs.db file
                 if not year_pattern.search(filename):
                     filename_with_year = f"{year}_{filename}"
-                    file_info.write(f"File Name: {filename_with_year}, Path: {root}\n")
+                    file_info.write(f"File Name: {filename_with_year}, Path: {os.path.join(root, filename_with_year)}\n")
                 else:
-                    file_info.write(f"File Name: {filename}, Path: {root}\n")
+                    file_info.write(f"File Name: {filename}, Path: {os.path.join(root, filename)}\n")
 
 if __name__ == "__main__":
     directory = input("Enter the directory path: ")
