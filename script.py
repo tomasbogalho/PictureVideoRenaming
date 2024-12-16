@@ -24,11 +24,15 @@ def get_media_creation_date(video_path):
     dates = []
     try:
         parser = createParser(video_path)
-        metadata = extractMetadata(parser)
-        if metadata:
-            for date_tag in ["creation_date", "modification_date", "encoded_date", "tagged_date"]:
-                if metadata.has(date_tag):
-                    dates.append(metadata.get(date_tag))
+        if not parser:
+            print(f"Unable to parse file {video_path}")
+            return dates
+        with parser:
+            metadata = extractMetadata(parser)
+            if metadata:
+                for date_tag in ["creation_date", "modification_date", "encoded_date", "tagged_date"]:
+                    if metadata.has(date_tag):
+                        dates.append(metadata.get(date_tag).value)
     except Exception as e:
         print(f"Error getting media creation date from {video_path}: {e}")
     return dates
@@ -76,8 +80,6 @@ def rename_files(directory, mode):
                         shutil.move(old_file, new_file)
                         log_file.write(f"Renamed '{filename}' to '{new_name}'\n")
                         print(f"Renamed '{filename}' to '{new_name}'")
-                        if os.path.exists(old_file):
-                            os.remove(old_file)  # Explicitly remove the original file
                         break
                     except PermissionError as e:
                         print(f"Error renaming '{filename}': {e}. Retrying...")
