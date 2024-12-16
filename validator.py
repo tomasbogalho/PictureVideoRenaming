@@ -8,6 +8,8 @@ def export_file_info(directory):
     with open("file_info.txt", "w") as file_info:
         for root, _, files in os.walk(directory):
             for filename in files:
+                if filename.lower() == "thumbs.db":
+                    continue  # Skip Thumbs.db file
                 if not year_pattern.search(filename):
                     year = input(f"Enter the year for the file '{filename}': ")
                     filename_with_year = f"{year}_{filename}"
