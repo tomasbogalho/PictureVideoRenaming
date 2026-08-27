@@ -11,11 +11,14 @@ def get_taken_date(image_path):
     dates = []
     try:
         with Image.open(image_path) as image:
-            exif_data = image._getexif()
+            exif_data = image.getexif()
             if exif_data:
                 for tag, value in exif_data.items():
                     if TAGS.get(tag) in ['DateTimeOriginal', 'DateTimeDigitized', 'DateTime']:
-                        dates.append(datetime.datetime.strptime(value, '%Y:%m:%d %H:%M:%S'))
+                        try:
+                            dates.append(datetime.datetime.strptime(str(value), '%Y:%m:%d %H:%M:%S'))
+                        except (TypeError, ValueError):
+                            print(f"Ignoring invalid EXIF date in {image_path}: {value}")
     except Exception as e:
         print(f"Error getting taken date from {image_path}: {e}")
     return dates
@@ -47,63 +50,82 @@ def get_oldest_date(dates):
 def rename_files(directory, mode):
     picture_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
     video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.flv']
-    log_file = open("rename_log.txt", "w")
+    if not os.path.isdir(directory):
+        raise ValueError(f"Directory does not exist: {directory}")
+    if mode not in ["rename", "validate"]:
+        raise ValueError("Mode must be 'rename' or 'validate'.")
+
     new_names = set()
 
-    for root, _, files in os.walk(directory):
-        for filename in files:
-            file_extension = os.path.splitext(filename)[1].lower()
-            old_file = os.path.join(root, filename)
-            new_name = None
+    with open("rename_log.txt", "w", encoding="utf-8") as log_file:
+        for root, _, files in os.walk(directory):
+            for filename in files:
+                file_extension = os.path.splitext(filename)[1].lower()
+                old_file = os.path.join(root, filename)
 
-            try:
-                dates = []
-                if file_extension in picture_extensions:
-                    dates.extend(get_taken_date(old_file))
-                    dates.extend(get_file_dates(old_file))
-                elif file_extension in video_extensions:
-                    media_creation_date = get_media_creation_date(old_file)
-                    if media_creation_date:
-                        dates.append(media_creation_date)
-                    dates.extend(get_file_dates(old_file))
-                else:
-                    continue
+                try:
+                    metadata_dates = []
+                    if file_extension in picture_extensions:
+                        metadata_dates.extend(get_taken_date(old_file))
+                    elif file_extension in video_extensions:
+                        media_creation_date = get_media_creation_date(old_file)
+                        if media_creation_date:
+                            metadata_dates.append(media_creation_date)
+                    else:
+                        continue
 
-                oldest_date = get_oldest_date(dates)
-                if oldest_date:
-                    new_name = oldest_date.strftime('%Y-%m-%d_%H-%M-%S') + file_extension
+                    # Prefer embedded capture metadata. Filesystem dates are only a fallback.
+                    oldest_date = get_oldest_date(metadata_dates or get_file_dates(old_file))
+                    if not oldest_date:
+                        continue
 
-                if new_name:
-                    new_file = os.path.join(root, new_name)
+                    timestamp = oldest_date.strftime('%Y-%m-%d_%H-%M-%S')
+                    new_file = os.path.join(root, timestamp + file_extension)
+                    old_key = os.path.normcase(os.path.abspath(old_file))
+                    new_key = os.path.normcase(os.path.abspath(new_file))
+
+                    if old_key == new_key:
+                        log_file.write(f"Unchanged: '{old_file}'\n")
+                        print(f"Unchanged: '{old_file}'")
+                        new_names.add(new_key)
+                        continue
+
                     counter = 1
-                    while new_file in new_names:
-                        new_file = os.path.join(root, f"{oldest_date.strftime('%Y-%m-%d_%H-%M-%S')}_{counter:02d}{file_extension}")
+                    while os.path.exists(new_file) or new_key in new_names:
+                        new_file = os.path.join(root, f"{timestamp}_{counter:02d}{file_extension}")
+                        new_key = os.path.normcase(os.path.abspath(new_file))
                         counter += 1
 
-                    new_names.add(new_file)
+                    new_names.add(new_key)
 
                     if mode == "rename":
+                        last_error = None
                         for _ in range(5):  # Retry up to 5 times
                             try:
                                 shutil.move(old_file, new_file)
-                                log_file.write(f"Renamed '{filename}' to '{new_file}'\n")
-                                print(f"Renamed '{filename}' to '{new_file}'")
+                                log_file.write(f"Renamed '{old_file}' to '{new_file}'\n")
+                                print(f"Renamed '{old_file}' to '{new_file}'")
+                                last_error = None
                                 break
                             except PermissionError as e:
+                                last_error = e
                                 print(f"Error renaming '{filename}': {e}. Retrying...")
                                 time.sleep(1)  # Wait for 1 second before retrying
-                    elif mode == "validate":
-                        log_file.write(f"'{filename}' would be renamed to '{new_file}'\n")
-                        print(f"'{filename}' would be renamed to '{new_file}'")
-            except Exception as e:
-                print(f"Error processing {filename}: {e}")
-
-    log_file.close()
+                        if last_error is not None:
+                            log_file.write(f"Failed to rename '{old_file}': {last_error}\n")
+                    else:
+                        log_file.write(f"'{old_file}' would be renamed to '{new_file}'\n")
+                        print(f"'{old_file}' would be renamed to '{new_file}'")
+                except Exception as e:
+                    log_file.write(f"Error processing '{old_file}': {e}\n")
+                    print(f"Error processing {filename}: {e}")
 
 if __name__ == "__main__":
     directory = input("Enter the directory path: ")
     mode = input("Enter the mode (rename/validate): ").strip().lower()
     if mode not in ["rename", "validate"]:
         print("Invalid mode. Please enter 'rename' or 'validate'.")
+    elif not os.path.isdir(directory):
+        print(f"Directory does not exist: {directory}")
     else:
         rename_files(directory, mode)
