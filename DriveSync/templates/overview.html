@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}DriveSync — Overview{% endblock %}
+{% block content %}
+<div class="drive-grid">
+    {% for label in ["A", "B"] %}
+    <div class="card drive-card" data-label="{{ label }}">
+        <h2>Drive {{ label }}</h2>
+        <input type="text" class="drive-path" placeholder="e.g. D:\ or E:\Photos" value="{{ drive_paths.get(label, '') }}">
+        <div class="actions">
+            <button class="save-btn">Save path</button>
+            <button class="scan-btn">Scan</button>
+        </div>
+        <div class="progress-bar"><div class="fill"></div></div>
+        <div class="status-line">Not scanned yet.</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <h2>Comparison</h2>
+    <div class="actions">
+        <button id="compare-btn">Compare A vs B</button>
+        <a href="/differences"><button type="button">View differences</button></a>
+    </div>
+    <div class="progress-bar" id="compare-progress"><div class="fill"></div></div>
+    <div class="status-line" id="compare-status">Run a scan on both drives, then compare.</div>
+    <div class="summary-grid" id="summary-grid"></div>
+</div>
+
+<script>
+    const driveData = {{ drives_json | safe }};
+</script>
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}

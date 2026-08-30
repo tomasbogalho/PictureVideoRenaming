@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}DriveSync{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+    <nav class="topnav">
+        <span class="brand">DriveSync</span>
+        <a href="/">Overview</a>
+        <a href="/differences">Differences</a>
+    </nav>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

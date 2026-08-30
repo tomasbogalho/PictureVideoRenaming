@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}DriveSync — Differences{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Differences: Drive A vs Drive B</h2>
+    <div class="filters">
+        <label>Filter:
+            <select id="status-filter">
+                <option value="">All</option>
+                <option value="only_a">Only on A</option>
+                <option value="only_b">Only on B</option>
+                <option value="conflict">Conflicts</option>
+                <option value="same_content">Same content, different timestamp</option>
+                <option value="identical">Identical</option>
+                <option value="error">Errors</option>
+            </select>
+        </label>
+        <span id="result-count"></span>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Path</th>
+                <th>Status</th>
+                <th>Size (A)</th>
+                <th>Size (B)</th>
+                <th>Modified (A)</th>
+                <th>Modified (B)</th>
+            </tr>
+        </thead>
+        <tbody id="diff-rows"></tbody>
+    </table>
+    <div class="pagination">
+        <button id="prev-page">Previous</button>
+        <span id="page-label"></span>
+        <button id="next-page">Next</button>
+    </div>
+</div>
+<script src="/static/js/differences.js"></script>
+{% endblock %}

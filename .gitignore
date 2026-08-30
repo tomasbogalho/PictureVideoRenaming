@@ -6,3 +6,7 @@ __pycache__/
 file_info.txt
 jpeg_delete_log.txt
 rename_log.txt
+
+# DriveSync scan cache
+DriveSync/data/*.db
+DriveSync/data/*.db-*
