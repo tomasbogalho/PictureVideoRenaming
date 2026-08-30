@@ -10,3 +10,6 @@ rename_log.txt
 # DriveSync scan cache
 DriveSync/data/*.db
 DriveSync/data/*.db-*
+
+# DriveSync desktop launcher (hardcodes a local, machine-specific Python path)
+DriveSync/start_drivesync.bat
